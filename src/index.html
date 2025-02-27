@@ -1,0 +1,45 @@
+<h1>Home</h1>
+
+<iframe src="/passwordless" width="500" height="500" id="passwordless-iframe"></iframe>
+
+<script>
+  const phoneNumber = '07123345567';
+  const iframe = document.getElementById("passwordless-iframe");
+
+  function removeListenForToken() {
+    console.log("removeListenForToken");
+    window.removeEventListener("message", listenForToken, false);
+  }
+
+  function handleToken(event) {
+    console.log("handleToken");
+    console.log(`Token: ${event.data}`);
+  }
+
+  function listenForToken() {
+    console.log("listenForToken");
+    window.addEventListener("message", handleToken, false);
+  }
+
+  function removeListenForIframeLoaded() {
+    console.log("removeListenForIframeLoaded");
+    window.removeEventListener("message", handleIframeLoaded, false);
+  }
+
+  function handleIframeLoaded(event) {
+    console.log("handleIframeLoaded", event.data);
+    removeListenForIframeLoaded();
+    iframe.contentWindow.postMessage({ type: "phoneNumber", data: phoneNumber }, window.location.origin);
+    listenForToken();
+  }
+
+  function listenForIframeLoaded() {
+    console.log("listenForIframeLoaded");
+    window.addEventListener("message", handleIframeLoaded, false);
+  }
+
+  window.onload = () => {
+    listenForIframeLoaded();
+  }
+    
+</script>
