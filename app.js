@@ -10,7 +10,7 @@ app.get('/', function(req, res, next) {
 app.get('/passwordless', function(req, res, next) {
   setTimeout(() => {
     res.sendFile(path.join(__dirname, './src/passwordless.html'))
-  }, 3000);
+  }, 2000);
 });
 
 app.listen(port, () => {

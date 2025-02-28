@@ -2,60 +2,104 @@
 
 <div id="container"></div>
 
-<button onclick="creatIframe()">Transfer</button>
+<button onclick="transfer()">Transfer</button>
 
 <script>
   const phoneNumber = "07123345567";
+  const container = "container";
+  const passwordlessIframe = "passwordless-iframe";
+  const passwordlessCloseButton = "passwordless-close-button";
+  const ELEMENT_container = document.getElementById(container);
+
+  let iFrameLoadedTimeout = undefined;
+
+  function addError() {
+    console.log("parent:addError");
+    const ELEMENT_error = document.createElement("h2");
+    ELEMENT_error.textContent = "There has been an error, please try again";
+
+    ELEMENT_container.appendChild(ELEMENT_error);
+  }
 
   function removeIframe() {
-    document.getElementById("passwordless-iframe").remove();
+    console.log("parent:removeIframe");
+    document.getElementById(passwordlessIframe).remove();
+    document.getElementById(passwordlessCloseButton).remove();
   }
 
   function removeListenForToken() {
-    console.log("removeListenForToken");
-    window.removeEventListener("message", listenForToken, false);
+    console.log("parent:removeListenForToken");
+    window.removeEventListener("message", handleToken, false);
   }
 
   function handleToken(event) {
-    console.log("handleToken");
+    console.log("parent:handleToken");
     console.log(`Token: ${event.data}`);
     removeListenForToken();
     removeIframe();
   }
 
   function listenForToken() {
-    console.log("listenForToken");
+    console.log("parent:listenForToken");
     window.addEventListener("message", handleToken, false);
   }
 
   function removeListenForIframeLoaded() {
-    console.log("removeListenForIframeLoaded");
+    console.log("parent:removeListenForIframeLoaded");
     window.removeEventListener("message", handleIframeLoaded, false);
   }
 
   function handleIframeLoaded(event) {
-    console.log("handleIframeLoaded", event.data);
+    console.log("parent:handleIframeLoaded", event.data);
+    clearTimeout(iFrameLoadedTimeout);
     removeListenForIframeLoaded();
-    const iframe = document.getElementById("passwordless-iframe");
+    const iframe = document.getElementById(passwordlessIframe);
     iframe.contentWindow.postMessage({ type: "phoneNumber", data: phoneNumber }, window.location.origin);
     listenForToken();
   }
 
   function listenForIframeLoaded() {
-    console.log("listenForIframeLoaded");
+    console.log("parent:listenForIframeLoaded");
     window.addEventListener("message", handleIframeLoaded, false);
+
+    iFrameLoadedTimeout = setTimeout(() => {
+      console.log("iFrameLoadedTimeout");
+      removeIframe();
+      addError();
+      removeListenForIframeLoaded();
+      removeListenForToken();
+    }, 5000);
+  }
+
+  function addCloseButton() {
+    console.log("parent:addCloseButton");
+    const ELEMENT_close = document.createElement("button");
+    ELEMENT_close.id = passwordlessCloseButton;
+    ELEMENT_close.onclick = () => {
+      clearTimeout(iFrameLoadedTimeout);
+      removeIframe();
+      removeListenForIframeLoaded();
+      removeListenForToken(); 
+    };
+    ELEMENT_close.textContent = "Close";
+
+    ELEMENT_container.appendChild(ELEMENT_close);
   }
 
   function creatIframe() {
-    const ELEMENT_container = document.getElementById("container");
+    console.log("parent:creatIframe");
     const ELEMENT_iframe = document.createElement("iframe");
-    ELEMENT_iframe.id = "passwordless-iframe";
+    ELEMENT_iframe.id = passwordlessIframe;
     ELEMENT_iframe.src = "/passwordless";
     ELEMENT_iframe.width = "500";
     ELEMENT_iframe.height = "500";
 
     ELEMENT_container.appendChild(ELEMENT_iframe);
+  }
 
+  function transfer() {
+    creatIframe();
+    addCloseButton();
     listenForIframeLoaded();
   }
 </script>
