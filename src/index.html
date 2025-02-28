@@ -1,10 +1,15 @@
 <h1>Home</h1>
 
-<iframe src="/passwordless" width="500" height="500" id="passwordless-iframe"></iframe>
+<div id="container"></div>
+
+<button onclick="creatIframe()">Transfer</button>
 
 <script>
-  const phoneNumber = '07123345567';
-  const iframe = document.getElementById("passwordless-iframe");
+  const phoneNumber = "07123345567";
+
+  function removeIframe() {
+    document.getElementById("passwordless-iframe").remove();
+  }
 
   function removeListenForToken() {
     console.log("removeListenForToken");
@@ -14,6 +19,8 @@
   function handleToken(event) {
     console.log("handleToken");
     console.log(`Token: ${event.data}`);
+    removeListenForToken();
+    removeIframe();
   }
 
   function listenForToken() {
@@ -29,6 +36,7 @@
   function handleIframeLoaded(event) {
     console.log("handleIframeLoaded", event.data);
     removeListenForIframeLoaded();
+    const iframe = document.getElementById("passwordless-iframe");
     iframe.contentWindow.postMessage({ type: "phoneNumber", data: phoneNumber }, window.location.origin);
     listenForToken();
   }
@@ -38,8 +46,16 @@
     window.addEventListener("message", handleIframeLoaded, false);
   }
 
-  window.onload = () => {
+  function creatIframe() {
+    const ELEMENT_container = document.getElementById("container");
+    const ELEMENT_iframe = document.createElement("iframe");
+    ELEMENT_iframe.id = "passwordless-iframe";
+    ELEMENT_iframe.src = "/passwordless";
+    ELEMENT_iframe.width = "500";
+    ELEMENT_iframe.height = "500";
+
+    ELEMENT_container.appendChild(ELEMENT_iframe);
+
     listenForIframeLoaded();
   }
-    
 </script>
